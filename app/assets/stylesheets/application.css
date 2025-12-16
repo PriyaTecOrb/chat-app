@@ -1,0 +1,77 @@
+/* app/assets/stylesheets/application.css */
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Message bubbles */
+.message-container {
+  transition: all 0.3s ease;
+}
+
+.message-content {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Online status indicator */
+.online-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+.online {
+  background-color: #28a745;
+}
+
+.offline {
+  background-color: #6c757d;
+}
+
+/* Message input */
+#message_content {
+  resize: none;
+  overflow-y: hidden;
+  min-height: 38px;
+  max-height: 200px;
+}
+
+/* File preview */
+#file-preview img {
+  max-height: 100px;
+  margin-right: 5px;
+  margin-bottom: 5px;
+}
+
+/* Make sure messages take full height */
+#messages {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation for new messages */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message-container {
+  animation: fadeIn 0.3s ease-out;
+}

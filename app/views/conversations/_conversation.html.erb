@@ -1,0 +1,53 @@
+<%
+  # Get user from locals or try current_user as fallback
+  display_user = local_assigns[:user]
+  display_user ||= current_user if defined?(current_user) && respond_to?(:current_user)
+%>
+<%= link_to conversation_path(conversation), 
+    class: "list-group-item list-group-item-action d-flex justify-content-between align-items-center" do %>
+  <div class="d-flex align-items-center">
+    <div class="me-3">
+      <% if conversation.direct_message? && defined?(current_user) && current_user.present? %>
+        <% other_user = conversation.other_participant(current_user) rescue nil %>
+        <% if other_user.present? %>
+          <div class="position-relative">
+            <%= image_tag other_user.avatar_url || "default-avatar.png", 
+                  class: "rounded-circle", 
+                  style: "width: 40px; height: 40px; object-fit: cover;" %>
+            <span class="position-absolute bottom-0 end-0 p-1 bg-<%= other_user.online? ? 'success' : 'secondary' %> border border-light rounded-circle">
+              <span class="visually-hidden"><%= other_user.online? ? 'Online' : 'Offline' %></span>
+            </span>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+             style="width: 40px; height: 40px;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      <% end %>
+    </div>
+    
+    <div>
+      <h6 class="mb-0">
+        <% if display_user.present? %>
+          <%= conversation.name(display_user) rescue conversation.title %>
+        <% else %>
+          <%= conversation.title %>
+        <% end %>
+      </h6>
+      <small class="text-muted">
+        <% if conversation.last_message.present? %>
+          <% if defined?(current_user) && current_user.present? && conversation.last_message.user == current_user %>
+            You: 
+          <% elsif !conversation.direct_message? && conversation.last_message.user.present? %>
+            <%= conversation.last_message.user.username %>: 
+          <% end %>
+          <%= truncate(conversation.last_message.content, length: 25) if conversation.last_message.content.present? %>
+          <% if conversation.last_message.created_at.present? %>
+            <span class="text-muted">· <%= time_ago_in_words(conversation.last_message.created_at) %> ago</span>
+          <% end %>
+        <% end %>
+      </small>
+    </div>
+  </div>
+<% end %>

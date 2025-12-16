@@ -1,0 +1,29 @@
+<!-- app/views/messages/_message.html.erb -->
+<div id="<%= dom_id(message) %>" class="message-container <%= message.user == current_user ? 'sent' : 'received' %>">
+  <div class="message-content bg-<%= message.user == current_user ? 'primary text-white' : 'light border' %>">
+    <% if message.user != current_user %>
+      <div class="fw-bold"><%= message.user.username %></div>
+    <% end %>
+    
+    <%= simple_format(message.content) %>
+    
+    <% if message.attachments.attached? %>
+      <div class="mt-2">
+        <% message.attachments.each do |attachment| %>
+          <% if attachment.image? %>
+            <%= image_tag attachment, class: "img-fluid rounded" %>
+          <% else %>
+            <%= link_to attachment.filename, url_for(attachment), class: "d-block" %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+    
+    <div class="message-time">
+      <%= time_ago_in_words(message.created_at) %> ago
+      <% if message.edited? %>
+        · edited
+      <% end %>
+    </div>
+  </div>
+</div>
