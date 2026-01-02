@@ -1,0 +1,61 @@
+<% active = defined?(@conversation) && @conversation.id == conversation.id %>
+<% other_user = conversation.conversation_type == 'group_chat' ? nil : conversation.other_user(current_user) %>
+
+<%= link_to conversation_path(conversation), 
+    class: "block transition-colors #{active ? 'bg-gray-800' : 'hover:bg-gray-800'} rounded-2xl p-4" do %>
+  <div class="flex items-center space-x-3">
+    <!-- Avatar -->
+    <div class="relative flex-shrink-0">
+      <% if conversation.conversation_type == 'group_chat' %>
+        <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+          <span class="text-white font-semibold text-lg"><%= conversation.title[0..1].upcase %></span>
+        </div>
+      <% else %>
+        <img src="<%= other_user.avatar.attached? ? url_for(other_user.avatar) : "https://ui-avatars.com/api/?name=#{other_user.username}&background=random" %>" 
+             alt="<%= other_user.username %>" 
+             class="w-14 h-14 rounded-full object-cover">
+        <% if other_user.online? %>
+          <span class="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900"></span>
+        <% end %>
+      <% end %>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center justify-between mb-1">
+        <h3 class="text-base font-semibold text-white truncate">
+          <%= conversation.conversation_type == 'group_chat' ? conversation.title : other_user.username %>
+        </h3>
+        <span class="text-sm text-gray-400 flex-shrink-0">
+          <%= time_ago_in_words(conversation.updated_at).gsub('about ', '') %>
+        </span>
+      </div>
+      
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-gray-300 truncate pr-2">
+          <% if conversation.messages.any? %>
+            <% last_message = conversation.messages.last %>
+            <% if last_message.user_id == current_user.id %>
+              <span class="text-gray-400">You:</span> 
+            <% end %>
+            <%= last_message.content.truncate(35) %>
+          <% else %>
+            <span class="text-gray-500 italic">No messages yet</span>
+          <% end %>
+        </p>
+        
+        <!-- Status indicators -->
+        <div class="flex items-center space-x-2 flex-shrink-0">
+          <!-- Message status for sent messages -->
+          <% if conversation.messages.any? && conversation.messages.last.user_id == current_user.id %>
+            <div class="text-purple-400">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,3 +1,4 @@
+<!-- app/views/conversations/index.html.erb -->
 <% content_for :sidebar do %>
   <div class="flex flex-col h-full bg-white">
     <!-- Header -->
@@ -57,21 +58,142 @@
   </div>
 <% end %>
 
-<!-- Main Chat Area (this will be in the main content area of the layout) -->
-<% if @conversation.present? %>
-  <%= turbo_frame_tag "conversation_#{@conversation.id}" do %>
-    <%= render "conversations/chat_area", conversation: @conversation %>
-  <% end %>
-<% else %>
-  <div class="flex items-center justify-center h-full">
-    <div class="text-center p-6 max-w-sm">
-      <div class="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+<!-- Mobile-First Layout -->
+<div class="md:hidden min-h-screen bg-gradient-to-br from-purple-900 via-gray-900 to-purple-800">
+  <!-- Mobile Header -->
+  <div class="flex items-center justify-between p-4 pt-12 pb-6">
+    <%= link_to root_path, class: "w-10 h-10 rounded-full bg-gray-700 bg-opacity-50 flex items-center justify-center" do %>
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+    <% end %>
+    <h1 class="text-xl font-semibold text-white">Messages</h1>
+    <button class="w-10 h-10 rounded-full bg-gray-700 bg-opacity-50 flex items-center justify-center">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Mobile Search -->
+  <div class="px-4 mb-6">
+    <div class="relative">
+      <input 
+        type="text" 
+        placeholder="Search" 
+        class="w-full pl-10 pr-4 py-3 text-white placeholder-gray-400 bg-gray-700 bg-opacity-50 rounded-2xl border-0 focus:outline-none focus:ring-2 focus:ring-purple-500"
+      >
+      <div class="absolute left-3 top-3.5 text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
       </div>
-      <h3 class="text-xl font-medium text-gray-900 mb-2">Select a conversation</h3>
-      <p class="text-gray-500">Choose an existing chat or start a new one</p>
     </div>
   </div>
-<% end %>
+
+  <!-- Mobile Active Users Horizontal Scroll -->
+  <div class="px-4 mb-6">
+    <div class="flex space-x-4 overflow-x-auto pb-2">
+      <% @conversations.limit(10).each do |conversation| %>
+        <% other_user = conversation.conversation_type == 'group_chat' ? nil : conversation.other_user(current_user) %>
+        <%= link_to conversation_path(conversation), class: "flex-shrink-0 text-center" do %>
+          <div class="relative mb-2">
+            <% if conversation.conversation_type == 'group_chat' %>
+              <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 flex items-center justify-center">
+                <span class="text-white font-semibold text-lg"><%= conversation.title[0..1].upcase %></span>
+              </div>
+            <% else %>
+              <img src="<%= other_user.avatar.attached? ? url_for(other_user.avatar) : "https://ui-avatars.com/api/?name=#{other_user.username}&background=random" %>" 
+                   class="w-16 h-16 rounded-full object-cover border-2 border-purple-400">
+              <% if other_user.online? %>
+                <span class="absolute bottom-1 right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-gray-900"></span>
+              <% end %>
+            <% end %>
+          </div>
+          <p class="text-xs text-white font-medium truncate w-16">
+            <%= conversation.conversation_type == 'group_chat' ? conversation.title : other_user.username %>
+          </p>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Mobile Chat Section -->
+  <div class="bg-gray-900 rounded-t-3xl flex-1 min-h-0 pb-20">
+    <div class="p-4 pb-2">
+      <h2 class="text-lg font-semibold text-white mb-4">Chat</h2>
+    </div>
+    
+    <!-- Mobile Conversations List -->
+    <div class="px-4 space-y-3">
+      <% if @conversations.any? %>
+        <% @conversations.each do |conversation| %>
+          <%= render "conversations/mobile_conversation_item", conversation: conversation, user: current_user %>
+        <% end %>
+      <% else %>
+        <div class="text-center py-12">
+          <div class="w-16 h-16 mx-auto mb-4 text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <p class="text-gray-400">No conversations yet</p>
+          <p class="text-sm text-gray-500">Start a new conversation!</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Navigation -->
+  <div class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 px-4 py-3 safe-area-inset-bottom">
+    <div class="flex justify-around items-center">
+      <%= link_to conversations_path, class: "p-3 rounded-full #{'bg-gray-700' if controller_name == 'conversations'}" do %>
+        <svg class="w-6 h-6 #{'text-gray-400' unless controller_name == 'conversations'} #{'text-white' if controller_name == 'conversations'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+        </svg>
+      <% end %>
+      
+      <%= link_to conversations_path, class: "p-3 rounded-full bg-purple-600" do %>
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+      <% end %>
+      
+      <button class="p-3 rounded-full bg-gray-700">
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+      </button>
+      
+      <%= link_to users_path, class: "p-3 rounded-full bg-gray-700 relative" do %>
+        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <span class="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
+          <span class="text-xs text-white font-bold">2</span>
+        </span>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Desktop Chat Area (this will be in the main content area of the layout) -->
+<div id="chat_container" class="hidden md:block h-full">
+  <% if @conversation.present? %>
+    <%= turbo_frame_tag "conversation_#{@conversation.id}" do %>
+      <%= render "conversations/chat_area", conversation: @conversation %>
+    <% end %>
+  <% else %>
+    <div class="flex items-center justify-center h-full">
+      <div class="text-center p-6 max-w-sm">
+        <div class="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">Select a conversation</h3>
+        <p class="text-gray-500">Choose an existing chat or start a new one</p>
+      </div>
+    </div>
+  <% end %>
+</div>

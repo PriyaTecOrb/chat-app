@@ -2,7 +2,11 @@
 <html>
 <head>
   <title>Chat App</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <meta name="turbo-native-bridge" content="ios,android">
+  <meta name="turbo-root" content="/">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
   <%= stylesheet_link_tag  "tailwind", "data-turbo-track": "reload" %>
@@ -14,7 +18,8 @@
 </head>
 
 <body class="bg-gray-50">
-  <nav class="bg-blue-600 text-white">
+  <!-- Desktop Navigation (always show on desktop) -->
+  <nav class="hidden md:block bg-blue-600 text-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
       <%= link_to "Chat App", root_path, class: "text-lg font-semibold" %>
       <div class="flex items-center gap-4">
@@ -30,8 +35,8 @@
   </nav>
 
   <% if user_signed_in? && (controller_name == 'conversations' || controller_name == 'messages') %>
-    <!-- Chat Layout with Sidebar -->
-    <div class="flex h-screen bg-gray-50" style="height: calc(100vh - 56px);">
+    <!-- Desktop Layout with Sidebar -->
+    <div class="hidden md:flex h-screen bg-gray-50" style="height: calc(100vh - 56px);">
       <!-- Sidebar -->
       <div class="w-80 bg-white border-r border-gray-200 flex-shrink-0">
         <%= yield :sidebar %>
@@ -42,6 +47,11 @@
         <%= render "shared/flash" if notice || alert %>
         <%= yield %>
       </div>
+    </div>
+    
+    <!-- Mobile Layout (full screen) -->
+    <div class="md:hidden">
+      <%= yield %>
     </div>
   <% else %>
     <!-- Regular Layout -->
